@@ -1,0 +1,186 @@
+\documentclass{sciposter}
+\usepackage[dvipsnames,usenames,svgnames,table]{xcolor} 
+\usepackage{lipsum}
+\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{wrapfig}
+\usepackage{gensymb}
+\usepackage[utf8]{inputenc}
+\usepackage{empheq}
+% have a table that spans two pages
+\usepackage{xtab,booktabs}
+\usepackage{hyperref}
+\usepackage{fancyvrb}
+\usepackage{xtab}
+
+\usepackage{graphicx,url}
+\usepackage{palatino}
+
+\geometry{
+ landscape,
+ a1paper,
+ left=5mm,
+ right=50mm,
+ top=5mm,
+ bottom=50mm,
+ }
+
+
+
+
+\providecommand{\tightlist}{%
+	\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+%BEGIN LISTINGDEF
+
+\usepackage{listings}
+   
+\usepackage{inconsolata}
+
+\definecolor{background}{HTML}{fcfeff}
+\definecolor{comment}{HTML}{b2979b}
+\definecolor{keywords}{HTML}{255957}
+\definecolor{basicStyle}{HTML}{6C7680}
+\definecolor{variable}{HTML}{001080}
+\definecolor{string}{HTML}{c18100}
+\definecolor{numbers}{HTML}{3f334d}
+
+\lstdefinestyle{lectureNotesListing}{
+	xleftmargin=0.5em, % 2.8 with line numbers
+	breaklines=true,
+	frame=single,
+	framesep=0.6mm,
+	frameround=ffff,
+	framexleftmargin=0.4em, % 2.4 with line numbers | 0.4 without them
+	tabsize=4, %width of tabs
+	aboveskip=0.5em,
+	classoffset=0,
+	sensitive=true,
+	% Colors
+	backgroundcolor=\color{background},
+	basicstyle=\color{basicStyle}\small\ttfamily,
+	keywordstyle=\color{keywords},
+	commentstyle=\color{comment},
+	stringstyle=\color{string},
+	numberstyle=\color{numbers},
+	identifierstyle=\color{variable},
+	showstringspaces=true
+}
+\lstset{style=lectureNotesListing}
+
+
+%END LISTINGDEF
+
+\usepackage{todonotes}
+\newcommand{\TODO}[1]{\todo[inline]{\Large TODO:  #1}}
+\newcommand*\widefbox[1]{\fbox{\hspace{2em}#1\hspace{2em}}}
+
+
+
+\renewcommand{\t}[1]{\texttt{#1}}
+
+
+
+
+%BEGIN TITLE
+\title{\huge{SQL}}
+
+% if you want to set an author replace the next line with \author{your name here}
+\author{\vspace{-1cm}}
+
+\renewcommand{\familydefault}{\rmdefault}
+
+\begin{document}
+
+\maketitle
+
+\begin{multicols}{3}
+
+This short paper summarizes important SQL concepts. All the content and examples are from \textit{Database Systems: The Complete Book} by Garcia-Molina, Ullman and Widom as well as ETH's lecture slides by Prof.\ Ce Zhang.
+
+\section*{Full Relation Operations}
+
+\TODO{...}
+
+
+\subsection*{Aggregation Operators}
+
+SQL has five aggregation operators: \texttt{SUM, AVG, MIN, MAX, COUNT}. All except the \t{COUNT} are applied to scalar valued columns. The only excpetion being \t{COUNT(*)} which counts the tuples in the relation constructed from the \t{FROM} and \t{WHERE} clause.
+
+\begin{lstlisting}[language=SQL]
+SELECT AVG(netWorth), COUNT(*) ????????????
+FROM MovieExec;
+\end{lstlisting}
+
+
+\subsection*{Grouping}
+The \t{GROUP BY} clause follows the \t{WHERE} clause and lists arguments that, if two tuples match on these arguments, will place them in the same group. The aggregation operators in the \t{SELECT} are applied on a per group basis. Only attributes mentioned in the \t{GROUP BY} clause may appear in the \t{SELECT} clause.
+
+\begin{lstlisting}[language=SQL]
+SELECT studioName, SUM(length)
+FROM Movies
+GROUP BY studioName;
+\end{lstlisting}
+
+\subsection*{Grouping, Aggregation and Nulls}
+\begin{itemize}
+	\item The value NULL is ignored in aggregation. \t{COUNT(*)} though counts number of tuples, but \t{COUNT(A)} counts number of attributes \t{A} and skips NULLS.
+	\item NULL is treated as an ordinary value when forming groups.
+	\item Aggregations over empty bag are NULL, except \t{COUNT(*)} being 0.
+\end{itemize}
+
+
+\subsection*{Having}
+
+Assume we would like to filter the groups we have aggregated: We can do this by adding a \t{HAVING} clause. e.g. we only want the names of sellers which have no sale below or equals 500:
+
+\begin{lstlisting}[language=SQL]
+SELECT COUNT(*), Name
+FROM SellerSale
+GROUP BY Name
+HAVING MIN(Sale) > 500;
+\end{lstlisting}
+
+
+\section*{Data Modifications}
+
+\subsection*{Insertions}
+
+Basic Syntax:
+
+\texttt{
+INSERT INTO $R$($A_1,\ldots,A_n$) VALUES ($v_1,\ldots v_n$);
+}
+
+if they are already in standard order we can also write:
+
+\texttt{
+	INSERT INTO $R$ VALUES ($v_1,\ldots v_n$);
+}
+
+or insert programmatically:
+
+\begin{lstlisting}[language=SQL]
+INSERT INTO Relation1
+	SELECT ....
+\end{lstlisting}
+
+We note that values are only inserted after the query has been fully computed preventing interference.
+
+\subsection*{Deletions}
+
+
+
+\newpage
+
+
+
+
+\end{multicols}
+\end{document}
