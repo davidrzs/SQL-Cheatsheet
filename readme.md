@@ -13,3 +13,4 @@ Feel free to fork this repository. Your help is greatly appreciated:
 - [Database Systems: The Complete Book](http://infolab.stanford.edu/~ullman/dscb.html)
 - [Lecture Slides Prof. Ce Zhang ETHZ](http://www.ds3lab.com/dmdb-2020/)
 - [Datenbanksysteme: Eine Einführung ](https://db.in.tum.de/teaching/bookDBMSeinf/index.shtml?lang=de)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/12)

@@ -104,17 +104,61 @@
 
 This short paper summarizes important SQL concepts. All the content and examples are from \textit{Database Systems: The Complete Book} by Garcia-Molina, Ullman and Widom as well as ETH's lecture slides by Prof.\ Ce Zhang.
 
+
+
+
+\section*{Simple SQL Queries}
+
+A basic SQL query has the form \t{SELECT <attr> FROM <rels> WHERE <cond>} where 
+\begin{itemize}
+	\item \t{<attr>} are the attributes of the relation we would like to have
+	\item \t{<rels>} are the tuples (the relation) we are selecting from
+	\item \t{<cond>} filters the tuples in the relation only keeping the ones satisfying the condition
+\end{itemize}
+
+A basic query might look as follows:
+
+\begin{lstlisting}[language=SQL]
+SELECT title, year, producer FROM
+movies WHERE id = 10;
+\end{lstlisting}
+
+
+\subsection*{title}
+
+
+
 \section*{Full Relation Operations}
 
 \TODO{...}
 
+
+\subsection*{Recursive Query}
+The basic structure is 
+\begin{lstlisting}[language=SQL]
+WITH RECURSIVE recRel AS(
+non_recursive-term
+UNION [ALL]
+recursive-term
+) SELECT * FROM recRel;
+\end{lstlisting}
+The database executes the \t{recursive-term} as long as the resulting set keeps changing.
+\begin{lstlisting}[language=SQL]
+WITH RECURSIVE anchestor AS (
+	SELECT * FROM people
+UNION
+	SELECT * from people as p
+	WHERE p.father = anchestor.id OR p.mother = anchestor.id
+)
+SELECT * from anchestor;
+\end{lstlisting}
 
 \subsection*{Aggregation Operators}
 
 SQL has five aggregation operators: \texttt{SUM, AVG, MIN, MAX, COUNT}. All except the \t{COUNT} are applied to scalar valued columns. The only excpetion being \t{COUNT(*)} which counts the tuples in the relation constructed from the \t{FROM} and \t{WHERE} clause.
 
 \begin{lstlisting}[language=SQL]
-SELECT AVG(netWorth), COUNT(*) ????????????
+SELECT AVG(netWorth), COUNT(*) 
 FROM MovieExec;
 \end{lstlisting}
 
@@ -152,7 +196,7 @@ HAVING MIN(Sale) > 500;
 
 \subsection*{Insertions}
 
-Basic Syntax:
+Basic syntax:
 
 \texttt{
 INSERT INTO $R$($A_1,\ldots,A_n$) VALUES ($v_1,\ldots v_n$);
@@ -174,8 +218,80 @@ INSERT INTO Relation1
 We note that values are only inserted after the query has been fully computed preventing interference.
 
 \subsection*{Deletions}
+We cannot specify the exact tuple to be deleted, instead we must specify a set of tuples (which can contain 1 tuple) to be deleted.
+\begin{lstlisting}[language=SQL]
+DELETE FROM R WHERE <cond>
+\end{lstlisting}
+
+\subsection*{Updates}
+Basic syntax:
+
+\texttt{UPDATE $R$ SET <new vals> WHERE <cond>};
+
+where the new vals are the name of the variable followed by an equals sign and the new assignment. 
+\begin{lstlisting}[language=SQL]
+UPDATE Professor
+SET name = 'Prof. ' || name
+WHERE title = 'Professor';
+\end{lstlisting}
+recall that the \t{||} operator concatenates strings.
 
 
+\section*{Transactions}
+
+
+A transaction is a set of SQL commands that get executed atomically. In PostgreSQL every statement in the shell is automatically wrapped in a transaction:
+
+\begin{lstlisting}[language=SQL]
+BEGIN;
+UPDATE accounts SET balance = balance - 100.00
+WHERE name = 'Alice';
+SAVEPOINT my_savepoint;
+UPDATE accounts SET balance = balance + 100.00
+WHERE name = 'Bob';
+-- oops ... forget that and use Wally's account
+ROLLBACK TO my_savepoint;
+UPDATE accounts SET balance = balance + 100.00
+WHERE name = 'Wally';
+COMMIT;
+\end{lstlisting}
+
+
+\section*{Views}
+
+A view is a virtual relation which is built on a query run on a table. 
+\begin{lstlisting}[language=SQL]
+CREATE VIEW <viewName> as <viewDefinition>;
+\end{lstlisting}
+where \t{viewDefinition} is a SQL query.
+
+we can delete a view with \t{DROP VIEW <viewName>;}
+
+\subsection*{Updating Views}
+
+We can only update views satisfying some constraints:
+\begin{itemize}
+	\item only one base relation involved
+	\item the view involves the key of the base relation
+	\item view does not involve aggregates, group by or duplicate-elimination
+\end{itemize}
+
+
+\section{Indexes}
+
+To add an index:
+
+\t{CREATE INDEX <indexName> ON Table1(field1);}
+
+to remove an index:
+
+\t{DROP INDEX <indexName>}
+
+\subsection*{Multicolumn Indexes}
+
+\t{CREATE INDEX <indexName> on Table1(field1,field2);}
+
+Multicolumn indexes first index on field1 and then on field2.
 
 \newpage
 
