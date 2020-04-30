@@ -123,9 +123,36 @@ SELECT title, year, producer FROM
 movies WHERE id = 10;
 \end{lstlisting}
 
+Conditions are specified with \t{<attr-name> = <value>} and can be chained together using \t{AND, OR, NOT, ()}
 
-\subsection*{title}
+\subsection*{String Comparison}
 
+Strings are lexicographically ordered in SQL and can be compared to each other.
+
+We can also use wildcards:
+\begin{itemize}
+	\item \t{\_} matches exactly one character: \t{WHERE title LIKE 'Ice \_\_\_'} would match any movie that has three characters following the space. (such as Ice age or Ice tea).
+	\item\t{\%} matches 0 or more characters: \t{WHERE title LIKE '\%sor\%s'} matches or, order, etc.
+\end{itemize}
+
+
+\subsection*{Dates and Times}
+Are prefixed with a keyword \t{DATE, TIMESTAMP, TIME}.
+\begin{itemize}
+	\item \t{DATE '1999-12-01'} is the first of December of 1999
+	\item \t{TIME '15:00:03.25} is 3 and a quarter minutes past three PM.
+	\item \t{TIMESTAMP '1966-03-22 13:00:12-1:00'}, notice the \t{-1:00} meaning one hour behind GTM.
+\end{itemize}
+
+To extract information you can use \t{SELECT EXTRACT(<selector> FROM <date/time>)} for example \t{SELECT EXTRACT(MONTH FROM '2000-00-12')}
+
+
+\subsection*{NULL Values and Unknowns}
+
+When a value is not specified in the table it defaults to \t{NULL}.
+When we make comparisons and have a \t{NULL} involved the truth value will become an \t{UNKNOWN}. On logical operators in behaves similarly to a \t{FALSE}, though it is not \t{FALSE}. Arithmetic expressions on \t{NULL} result in \t{NULL}.
+
+The database only returns tuples where the \t{WHERE} clause evaluates to true. Hence if we have an \t{UNKNOWN} it will not be returned.
 
 
 \section*{Full Relation Operations}
