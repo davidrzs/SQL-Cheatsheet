@@ -155,6 +155,16 @@ When we make comparisons and have a \t{NULL} involved the truth value will becom
 The database only returns tuples where the \t{WHERE} clause evaluates to true. Hence if we have an \t{UNKNOWN} it will not be returned.
 
 
+\subsection*{Ordering}
+
+After a \t{WHERE, GROUP BY, HAVING} clause we can have an \t{ORDER BY} clause which looks as follows:
+
+\t{ORDER BY <attrs> <order>}
+
+where \t{<attrs>} is the list of attributes we want to order by and \t{<order>} is either \t{ASC} or \t{DESC} with the default being \t{ASC}.
+
+\TODO{add joins etc.}
+
 \section*{Full Relation Operations}
 
 \TODO{...}
@@ -176,7 +186,8 @@ WITH RECURSIVE anchestor AS (
 UNION
 	SELECT * from people as p
 	WHERE p.father = anchestor.id OR p.mother = anchestor.id
-)
+)
+
 SELECT * from anchestor;
 \end{lstlisting}
 
@@ -280,7 +291,8 @@ WHERE name = 'Bob';
 ROLLBACK TO my_savepoint;
 UPDATE accounts SET balance = balance + 100.00
 WHERE name = 'Wally';
-COMMIT;
+COMMIT;
+
 \end{lstlisting}
 
 
@@ -304,7 +316,7 @@ We can only update views satisfying some constraints:
 \end{itemize}
 
 
-\section{Indexes}
+\section*{Indexes}
 
 To add an index:
 
