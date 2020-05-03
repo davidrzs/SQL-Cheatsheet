@@ -163,7 +163,81 @@ After a \t{WHERE, GROUP BY, HAVING} clause we can have an \t{ORDER BY} clause wh
 
 where \t{<attrs>} is the list of attributes we want to order by and \t{<order>} is either \t{ASC} or \t{DESC} with the default being \t{ASC}.
 
-\TODO{add joins etc.}
+
+\subsection*{Union, Intersection and Differences}
+
+Let \t{(Q1)}, \t{(Q2)} be two queries of the form \t{SELECT ... FROM ... WHERE ...}. We now define: 
+
+\begin{itemize}
+	\item \t{(Q1) UNION (Q2)} returns records either in \t{(Q1)} or \t{(Q2)} or both.
+	\item \t{(Q1) INTERSECT (Q2)} returns only records which are in \t{(Q1)} and \t{(Q2)}
+	\item \t{(Q1) EXCEPT (Q2)} returns all records being only in \t{(Q1)} and not in \t{(Q2)}.
+\end{itemize}
+
+\section*{Joins}
+
+\subsection*{Cartesian Product / Cross Join}
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM 
+Cars c CROSS JOIN Homeowners h
+WHERE c.owner = h.id
+\end{lstlisting}
+
+Alternatively there also exist the traditional version with the implicit join:
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM 
+Cars c, Homeowners h
+WHERE c.owner = h.id
+\end{lstlisting}
+
+This query build the cross product between all cards and all homeowners and keeps the records where the car owner identifier is the homeowner id.
+
+\textbf{Note:} Sometimes one also sees \t{Cars as c , Homeowners as h} the keyword \t{as} is completely optional.
+
+
+When \t{h} and \t{c} both have an attribute \t{id} we have to reference it as either \t{c.id} or \t{h.id} since otherwise there would be ambiguity.
+
+\subsection*{Normal (inner) Join}
+Combines tuples from both relations satisfying join condition.
+\begin{lstlisting}[language=SQL]
+SELECT * FROM 
+Cars c JOIN Pets p ON c.owner = p.owner
+\end{lstlisting}
+
+or equivalently if both have a column \t{owner} one would use as a join condition:
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM 
+Cars c JOIN Pets p USING(owner)
+\end{lstlisting}
+
+\subsection*{Natural Joins}
+Combines tuples from both relations where all columns with the same name match. In the example if they both had a column \t{owner}, this column would have to match.
+\begin{lstlisting}[language=SQL]
+SELECT * FROM 
+Cars c NATURAL JOIN Pets p
+\end{lstlisting}
+
+
+\subsection*{Outer Joins}
+
+They can be natural or normal. The key difference is that an outer join also includes non matching records and sets the missing attributes to \t{NULL}.
+\begin{lstlisting}[language=SQL]
+Cars c FULL JOIN Pets p using(owner)
+\end{lstlisting}
+The statement above combines all pet and car combinations as a normal join but also includes all tuples with no match. (all cars not sharing an owner with a cat and vice versa).
+
+\textbf{Left Outer Join}
+\begin{lstlisting}[language=SQL]
+Cars c LEFT OUTER JOIN Pets p using(owner)
+\end{lstlisting}
+The statement above includes all pet and car combinations as a normal join but also includes all cars not sharing an owner with a cat. But the cats not sharing an owner with a car are excluded.
+
+Analogously there exists a \textbf{Right Outer Join}.^
+
+\section*{Subqueries}
 
 \section*{Full Relation Operations}
 
