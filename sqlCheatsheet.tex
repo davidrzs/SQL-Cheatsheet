@@ -104,7 +104,7 @@
 
 This short paper summarizes important SQL concepts. All the content and examples are from \textit{Database Systems: The Complete Book} by Garcia-Molina, Ullman and Widom as well as ETH's lecture slides by Prof.\ Ce Zhang.
 
-
+Please excuse the somewhat weird examples. It was hard coming up with good examples at 1 in the morning.
 
 
 \section*{Simple SQL Queries}
@@ -235,13 +235,69 @@ Cars c LEFT OUTER JOIN Pets p using(owner)
 \end{lstlisting}
 The statement above includes all pet and car combinations as a normal join but also includes all cars not sharing an owner with a cat. But the cats not sharing an owner with a car are excluded.
 
-Analogously there exists a \textbf{Right Outer Join}.^
+Analogously there exists a \textbf{Right Outer Join}.
 
 \section*{Subqueries}
 
+There are three places where SQL subqueries can occur:
+
+\begin{itemize}
+	\item Returning a single value to be used in a \t{WHERE} clause.
+	\item Returning relations to be used in a \t{WHERE} clause.
+	\item In a \t{FROM} clause followed by a variable to represent that subquery.
+\end{itemize}
+
+\subsection*{Single Value Returning}
+\begin{lstlisting}[language=SQL]
+SELECT * FROM CarOwners co WHERE co.id = (SELECT owner FROM Cars WHERE numberPlate = 123 LIMIT 1)
+\end{lstlisting}
+Notice that the \t{LIMIT 1} is important. If multiple or no tuples were returned an error would be raised.
+
+\subsection*{Conditions with Relations}
+
+There are four types:
+
+\begin{itemize}
+	\item \t{s > ALL R}, is true if s is larger than all values in R.
+	\item \t{s > ANY R}, is true if is larger than at least one value in R.
+	\item \t{EXISTS R}, is true if R is non-empty.
+	\item \t{s IN R}, is true if the tuple s is equal to a tuple in R. (analogously there is \t{NOT IN})
+\end{itemize}
+
+As an example: (notice that the parentheses around \t{owner, insurance} are essential to mark it as a tuple). Here we find the car owners who have insurance for their car.
+\begin{lstlisting}[language=SQL]
+SELECT owner FROM CarOwners, Insurance WHERE (owner, insurance) IN (SELECT owner, insurance FROM OwnerInsurance)
+\end{lstlisting}
+
+\subsection*{Correlated Subquery}
+
+We use the tuple we are selecting in a subquery:
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM Cars c
+WHERE productionYear <= ALL (
+	SELECT year FROM Cars 
+	WHERE model = c.model
+) 
+\end{lstlisting}
+
+The query above find the oldest cards of every model.
+
+
+\subsection*{Subqueries in \t{FROM} Clause}
+
+\begin{lstlisting}[language=SQL]
+SELECT owner FROM
+Cars c, (SELECT * FROM OwnerInsurance WHERE payment < 200) cheapInsOwn
+WHERE c.owner = cheapInsOwn.owner;
+\end{lstlisting}
+The query above finds all cars with their respective insurance whose owner has a cheap insurance.
+
 \section*{Full Relation Operations}
 
-\TODO{...}
+\subsection*{Removing Duplicates}
+
+To remove duplicates use a the  \t{DISTINCT} keyword as in \t{SELECT DISTINCT ...}. But note that it is very expensive as all the relations will need to be sorted in order to detect and elinimate duplicates. 
 
 
 \subsection*{Recursive Query}
