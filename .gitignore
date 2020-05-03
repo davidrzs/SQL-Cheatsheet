@@ -1,3 +1,7 @@
+# db related stuff
+*.sqlite
+
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
