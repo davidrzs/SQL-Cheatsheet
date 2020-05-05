@@ -472,6 +472,29 @@ Multicolumn indexes first index on field1 and then on field2.
 
 \part{SQL for Table Management}
 
+\section*{Table Creation}
+The basic syntax is as follows:
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Professor(
+	PersNr integer,
+	Name varchar(30),
+	Level character(2) default "AP",
+	PRIMARY KEY (PersNr)
+);
+\end{lstlisting}
+The default is a value that will be used if no \t{Level} is specified (otherwise we would have a \t{NULL}).
+
+\subsection*{Data Types}
+
+\begin{itemize}
+	\item \t{int, bit} integer, 0-1 bit
+	\item \t{numeric(precision)} a number with fixed precision
+	\item \t{boolean} 
+	\item \t{timestamp, date, time}
+	\item \t{varchar(n)} variable length string with limit
+	\item \t{char(n)} string which will be padded to size n
+	\item \t{text} unlimited string (in theory)
+\end{itemize}
 
 \section*{Relations}
 
@@ -543,8 +566,95 @@ create table Lecture (
 ); 
 \end{lstlisting}
 
+\subsection*{Enforcing 1:1 Relations}
 
-\section*{Contraints}
+This is best done using a third table:
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Employee(
+	emp_id VARCHAR(20) NOT NULL UNIQUE
+);
+CREATE TABLE Office(
+	room VARCHAR(20) NOT NULL UNIQUE
+);
+
+CREATE TABLE HasOffice(
+	emp_id VARCHAR(20) NOT NULL UNIQUE REFERENCES Employee (emp_id),
+	room VARCHAR(20) NOT NULL UNIQUE REFERENCES Office (room)
+);
+\end{lstlisting}
+
+\section*{Constraints}
+
+\subsection*{\t{NOT NULL}}
+Attribute cannot be \t{NULL}
+\begin{lstlisting}[language=SQL]
+..
+sName text NOT NULL,
+...
+\end{lstlisting}
+\subsection*{\t{PRIMARY KEY}}
+Only one primary key constraint can be specified per relation.
+Two options, either a single attribute as primary key like
+\begin{lstlisting}[language=SQL]
+...
+sID int PRIMARY KEY,
+...
+\end{lstlisting}
+or a combination of attributes:
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Student(
+	sID int,
+	sName text,
+	GPA real
+	PRIMARY KEY (sID, sName)
+);
+\end{lstlisting}
+where the combination must be unique and all attributes need to be non null.
+\subsection*{\t{UNIQUE}}
+Usage like primary key: A value must be unique, but different from \t{PRIMARY KEY} the value can be \t{NULL} and we can have multiple \t{UNIQUE} constraints per relation.
+
+\subsection*{\t{CHECK}}
+Can happen at tuple or attribute level which will get checked at update of tuple or single attribute respectively.
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Employee(
+salary real,
+bonus real,
+CHECK(salary + bonus > 10000)
+);
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Employee(
+salary real CHECK(salary  > 5000)
+);
+\end{lstlisting}
+
+
+\section*{Assertions \& Triggers}
+
+\subsection*{Assertion}
+A logical expression that must be true at all times:
+\begin{lstlisting}[language=SQL]
+CREATE  ASSERTION <assertName> CHECK (<condition>)
+\end{lstlisting}
+
+\subsection*{Trigger}
+A trigger is an SQL statement that gets executed when a certain predefined action is performed. It is best to just look at an example or read the docs if a trigger is needed:
+
+\begin{lstlisting}[language=SQL]
+CREATE TRIGGER CeoCantGetPayCut
+AFTER UPDATE OF (salary) ON Ceo
+REFERENCING
+	OLD ROW AS oldRow,
+	NEW ROW AS newRow,
+FOR EACH ROW
+WHEN(oldRow.salary > newRow.salary)
+	UPDATE Ceo
+	SET salary = oldRow.salary
+	WHERE id = oldRow.id;
+\end{lstlisting}
+
+
 
 \newpage
 
