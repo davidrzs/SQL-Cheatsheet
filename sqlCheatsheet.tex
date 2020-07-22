@@ -105,9 +105,6 @@
 
 This short paper summarizes important SQL concepts. All the content and examples are from \textit{Database Systems: The Complete Book} by Garcia-Molina, Ullman and Widom as well as ETH's lecture slides by Prof.\ Ce Zhang.
 
-Please excuse the somewhat weird examples. It was hard coming up with good examples at 1 in the morning.
-
-
 \part{SQL for Queries}
 
 \section*{Simple SQL Queries}
@@ -466,6 +463,43 @@ to remove an index:
 Multicolumn indexes first index on field1 and then on field2.
 
 
+
+
+
+\section*{Isolation Level}
+
+With the comman \texttt{SET TRANSACTION ISOLATION LEVEL <isolation level>} we can set the isolation level for the current transaction.
+
+We can also have a new transaction with a specific isolation level by typing \texttt{BEGIN TRANSACTION ISOLATION LEVEL <isolation level>;}
+
+
+
+
+There are the following levels:
+
+\begin{tabular}{|c|c|c|c|}
+	\hline
+	& Dirty Reads & Nonrepeatable Reads & Phantoms \\
+	\hline
+	\texttt{READ UNCOMMITTED}&  &  &  \\
+	\hline
+	\texttt{READ COMMITTED}& No &  &  \\
+	\hline
+	\texttt{REPEATABLE READ}& No & No &  \\
+	\hline
+	\texttt{SERIALIZABLE}& No & No & No \\
+	\hline
+\end{tabular}
+
+
+where:
+
+\begin{itemize}
+	\item Dirty Reads: When we read data another transaction has modified and not yet committed.
+	\item Nonrepeatable Reads: When we read a record twice but the value was allowed to change in between.
+	\item Phantoms: When another transactions commits and adds or removes rows to a table we are currently reading. 
+\end{itemize}
+
 \vfill\null 
 \columnbreak
 
@@ -590,7 +624,8 @@ Attribute cannot be \t{NULL}
 \begin{lstlisting}[language=SQL]
 ..
 sName text NOT NULL,
-...
+...
+
 \end{lstlisting}
 \subsection*{\t{PRIMARY KEY}}
 Only one primary key constraint can be specified per relation.
@@ -602,10 +637,11 @@ sID int PRIMARY KEY,
 \end{lstlisting}
 or a combination of attributes:
 \begin{lstlisting}[language=SQL]
-CREATE TABLE Student(
-	sID int,
-	sName text,
-	GPA real
+CREATE TABLE Student
+(
+	sID int,
+	sName text,
+	GPA real
 	PRIMARY KEY (sID, sName)
 );
 \end{lstlisting}
@@ -616,7 +652,8 @@ Usage like primary key: A value must be unique, but different from \t{PRIMARY KE
 \subsection*{\t{CHECK}}
 Can happen at tuple or attribute level which will get checked at update of tuple or single attribute respectively.
 \begin{lstlisting}[language=SQL]
-CREATE TABLE Employee(
+CREATE TABLE Employee
+(
 salary real,
 bonus real,
 CHECK(salary + bonus > 10000)
@@ -624,7 +661,8 @@ CHECK(salary + bonus > 10000)
 \end{lstlisting}
 
 \begin{lstlisting}[language=SQL]
-CREATE TABLE Employee(
+CREATE TABLE Employee
+(
 salary real CHECK(salary  > 5000)
 );
 \end{lstlisting}
