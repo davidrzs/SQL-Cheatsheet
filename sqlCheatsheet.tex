@@ -174,6 +174,19 @@ Let \t{(Q1)}, \t{(Q2)} be two queries of the form \t{SELECT ... FROM ... WHERE .
 	\item \t{(Q1) EXCEPT (Q2)} returns all records being only in \t{(Q1)} and not in \t{(Q2)}.
 \end{itemize}
 
+
+\subsection*{Case Statements}
+We can modify a row dynamically using the case statement. It is especially useful to deal with \t{NULL} values.
+\begin{lstlisting}[language=SQL]
+SELECT carId, carName,
+CASE
+	WHEN carAge = 0 THEN 'new'
+	WHEN carAge < 20 THEN 'worthless'
+	ELSE 'old-timer'
+END AS ageComment
+FROM cars; 
+\end{lstlisting}
+
 \section*{Joins}
 
 \subsection*{Cartesian Product / Cross Join}
@@ -297,7 +310,7 @@ The query above finds all cars with their respective insurance whose owner has a
 
 \subsection*{Removing Duplicates}
 
-To remove duplicates use a the  \t{DISTINCT} keyword as in \t{SELECT DISTINCT ...}. But note that it is very expensive as all the relations will need to be sorted in order to detect and elinimate duplicates. 
+To remove duplicates use a the  \t{DISTINCT} keyword as in \t{SELECT DISTINCT ...}. But note that it is very expensive as all the relations will need to be sorted in order to detect and eliminate duplicates. Note that \t{NULL} will also be included at most once if it occurs in the result.
 
 
 \subsection*{Recursive Query}
