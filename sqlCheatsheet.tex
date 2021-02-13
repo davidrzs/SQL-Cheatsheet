@@ -186,7 +186,7 @@ CASE
 END AS ageComment
 FROM cars; 
 \end{lstlisting}
-
+If no \t{CASE} matches the statement will return \t{NULL}.
 \section*{Joins}
 
 \subsection*{Cartesian Product / Cross Join}
@@ -512,9 +512,6 @@ where:
 	\item Nonrepeatable Reads: When we read a record twice but the value was allowed to change in between.
 	\item Phantoms: When another transactions commits and adds or removes rows to a table we are currently reading. 
 \end{itemize}
-
-\vfill\null 
-\columnbreak
 
 
 \part{SQL for Table Management}

@@ -1,0 +1,657 @@
+\documentclass{article}
+\usepackage[cmyk,dvipsnames,usenames,svgnames,table]{xcolor} 
+\usepackage{lipsum}
+\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{wrapfig}
+\usepackage{gensymb}
+\usepackage[utf8]{inputenc}
+\usepackage{empheq}
+\usepackage[pdfusetitle]{hyperref}
+\usepackage{fancyvrb}
+\usepackage{xtab}
+\usepackage{parskip}
+\usepackage{graphicx,url}
+\usepackage{palatino}
+
+\geometry{
+  a3paper,
+ margin=1in
+ }
+
+
+
+
+\providecommand{\tightlist}{%
+	\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+%BEGIN LISTINGDEF
+
+\usepackage{listings}
+   
+\usepackage{inconsolata}
+
+\definecolor{background}{HTML}{fcfeff}
+\definecolor{comment}{HTML}{b2979b}
+\definecolor{keywords}{HTML}{255957}
+\definecolor{basicStyle}{HTML}{6C7680}
+\definecolor{variable}{HTML}{001080}
+\definecolor{string}{HTML}{c18100}
+\definecolor{numbers}{HTML}{3f334d}
+
+\lstdefinestyle{lectureNotesListing}{
+	xleftmargin=0.5em, % 2.8 with line numbers
+	breaklines=true,
+	frame=single,
+	framesep=0.6mm,
+	frameround=ffff,
+	framexleftmargin=0.4em, % 2.4 with line numbers | 0.4 without them
+	tabsize=4, %width of tabs
+	aboveskip=0.5em,
+	classoffset=0,
+	sensitive=true,
+	% Colors
+	backgroundcolor=\color{background},
+	basicstyle=\color{basicStyle}\small\ttfamily,
+	keywordstyle=\color{keywords},
+	commentstyle=\color{comment},
+	stringstyle=\color{string},
+	numberstyle=\color{numbers},
+	identifierstyle=\color{variable},
+	showstringspaces=true
+}
+\lstset{style=lectureNotesListing}
+
+%END LISTINGDEF
+
+
+%BEGIN TODO DEFINITION
+\usepackage{todonotes}
+\newcommand{\TODO}[1]{\todo[inline]{\Large TODO:  #1}}
+\newcommand*\widefbox[1]{\fbox{\hspace{2em}#1\hspace{2em}}}
+%END TODO DEFINITION
+
+
+%BEGIN OTHER COMMANDS
+\renewcommand{\t}[1]{\texttt{#1}}
+
+%BEGIN SETUP
+\title{\huge{SQL}}
+
+
+\author{\Large David Zollikofer}
+%END SETUP
+
+% set font
+\renewcommand{\familydefault}{\rmdefault}
+
+
+\begin{document}
+
+
+\maketitle
+
+
+
+This short paper summarizes important SQL concepts. All the content and examples are from \textit{Database Systems: The Complete Book} by Garcia-Molina, Ullman and Widom as well as ETH's lecture slides by Prof.\ Ce Zhang.
+
+\part{SQL for Queries}
+
+\section*{Simple SQL Queries}
+
+A basic SQL query has the form \t{SELECT <attr> FROM <rels> WHERE <cond>} where 
+\begin{itemize}
+	\item \t{<attr>} are the attributes of the relation we would like to have
+	\item \t{<rels>} are the tuples (the relation) we are selecting from
+	\item \t{<cond>} filters the tuples in the relation only keeping the ones satisfying the condition
+\end{itemize}
+
+A basic query might look as follows:
+
+\begin{lstlisting}[language=SQL]
+SELECT title, year, producer FROM
+movies WHERE id = 10;
+\end{lstlisting}
+
+Conditions are specified with \t{<attr-name> = <value>} and can be chained together using \t{AND, OR, NOT, ()}
+
+\subsection*{String Comparison}
+
+Strings are lexicographically ordered in SQL and can be compared to each other.
+
+We can also use wildcards:
+\begin{itemize}
+	\item \t{\_} matches exactly one character: \t{WHERE title LIKE 'Ice \_\_\_'} would match any movie that has three characters following the space. (such as Ice age or Ice tea).
+	\item\t{\%} matches 0 or more characters: \t{WHERE title LIKE '\%sor\%s'} matches or, order, etc.
+\end{itemize}
+
+
+\subsection*{Dates and Times}
+Are prefixed with a keyword \t{DATE, TIMESTAMP, TIME}.
+\begin{itemize}
+	\item \t{DATE '1999-12-01'} is the first of December of 1999
+	\item \t{TIME '15:00:03.25} is 3 and a quarter minutes past three PM.
+	\item \t{TIMESTAMP '1966-03-22 13:00:12-1:00'}, notice the \t{-1:00} meaning one hour behind GTM.
+\end{itemize}
+
+To extract information you can use \t{SELECT EXTRACT(<selector> FROM <date/time>)} for example \t{SELECT EXTRACT(MONTH FROM '2000-00-12')}
+
+
+\subsection*{NULL Values and Unknowns}
+
+When a value is not specified in the table it defaults to \t{NULL}.
+When we make comparisons and have a \t{NULL} involved the truth value will become an \t{UNKNOWN}. On logical operators in behaves similarly to a \t{FALSE}, though it is not \t{FALSE}. Arithmetic expressions on \t{NULL} result in \t{NULL}.
+
+The database only returns tuples where the \t{WHERE} clause evaluates to true. Hence if we have an \t{UNKNOWN} it will not be returned.
+
+
+\subsection*{Ordering}
+
+After a \t{WHERE, GROUP BY, HAVING} clause we can have an \t{ORDER BY} clause which looks as follows:
+
+\t{ORDER BY <attrs> <order>}
+
+where \t{<attrs>} is the list of attributes we want to order by and \t{<order>} is either \t{ASC} or \t{DESC} with the default being \t{ASC}.
+
+
+\subsection*{Union, Intersection and Differences}
+
+Let \t{(Q1)}, \t{(Q2)} be two queries of the form \t{SELECT ... FROM ... WHERE ...}. We now define: 
+
+\begin{itemize}
+	\item \t{(Q1) UNION (Q2)} returns records either in \t{(Q1)} or \t{(Q2)} or both.
+	\item \t{(Q1) INTERSECT (Q2)} returns only records which are in \t{(Q1)} and \t{(Q2)}
+	\item \t{(Q1) EXCEPT (Q2)} returns all records being only in \t{(Q1)} and not in \t{(Q2)}.
+\end{itemize}
+
+\section*{Joins}
+
+\subsection*{Cartesian Product / Cross Join}
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM 
+Cars c CROSS JOIN Homeowners h
+WHERE c.owner = h.id
+\end{lstlisting}
+
+Alternatively there also exist the traditional version with the implicit join:
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM 
+Cars c, Homeowners h
+WHERE c.owner = h.id
+\end{lstlisting}
+
+This query build the cross product between all cards and all homeowners and keeps the records where the car owner identifier is the homeowner id.
+
+\textbf{Note:} Sometimes one also sees \t{Cars as c , Homeowners as h} the keyword \t{as} is completely optional.
+
+
+When \t{h} and \t{c} both have an attribute \t{id} we have to reference it as either \t{c.id} or \t{h.id} since otherwise there would be ambiguity.
+
+\subsection*{Normal (inner) Join}
+Combines tuples from both relations satisfying join condition.
+\begin{lstlisting}[language=SQL]
+SELECT * FROM 
+Cars c JOIN Pets p ON c.owner = p.owner
+\end{lstlisting}
+
+or equivalently if both have a column \t{owner} one would use as a join condition:
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM 
+Cars c JOIN Pets p USING(owner)
+\end{lstlisting}
+
+\subsection*{Natural Joins}
+Combines tuples from both relations where all columns with the same name match. In the example if they both had a column \t{owner}, this column would have to match.
+\begin{lstlisting}[language=SQL]
+SELECT * FROM 
+Cars c NATURAL JOIN Pets p
+\end{lstlisting}
+
+
+\subsection*{Outer Joins}
+
+They can be natural or normal. The key difference is that an outer join also includes non matching records and sets the missing attributes to \t{NULL}.
+\begin{lstlisting}[language=SQL]
+Cars c FULL JOIN Pets p using(owner)
+\end{lstlisting}
+The statement above combines all pet and car combinations as a normal join but also includes all tuples with no match. (all cars not sharing an owner with a cat and vice versa).
+
+\textbf{Left Outer Join}
+\begin{lstlisting}[language=SQL]
+Cars c LEFT OUTER JOIN Pets p using(owner)
+\end{lstlisting}
+The statement above includes all pet and car combinations as a normal join but also includes all cars not sharing an owner with a cat. But the cats not sharing an owner with a car are excluded.
+
+Analogously there exists a \textbf{Right Outer Join}.
+
+\section*{Subqueries}
+
+There are three places where SQL subqueries can occur:
+
+\begin{itemize}
+	\item Returning a single value to be used in a \t{WHERE} clause.
+	\item Returning relations to be used in a \t{WHERE} clause.
+	\item In a \t{FROM} clause followed by a variable to represent that subquery.
+\end{itemize}
+
+\subsection*{Single Value Returning}
+\begin{lstlisting}[language=SQL]
+SELECT * FROM CarOwners co WHERE co.id = (SELECT owner FROM Cars WHERE numberPlate = 123 LIMIT 1)
+\end{lstlisting}
+Notice that the \t{LIMIT 1} is important. If multiple or no tuples were returned an error would be raised.
+
+\subsection*{Conditions with Relations}
+
+There are four types:
+
+\begin{itemize}
+	\item \t{s > ALL R}, is true if s is larger than all values in R.
+	\item \t{s > ANY R}, is true if is larger than at least one value in R.
+	\item \t{EXISTS R}, is true if R is non-empty.
+	\item \t{s IN R}, is true if the tuple s is equal to a tuple in R. (analogously there is \t{NOT IN})
+\end{itemize}
+
+As an example: (notice that the parentheses around \t{owner, insurance} are essential to mark it as a tuple). Here we find the car owners who have insurance for their car.
+\begin{lstlisting}[language=SQL]
+SELECT owner FROM CarOwners, Insurance WHERE (owner, insurance) IN (SELECT owner, insurance FROM OwnerInsurance)
+\end{lstlisting}
+
+\subsection*{Correlated Subquery}
+
+We use the tuple we are selecting in a subquery:
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM Cars c
+WHERE productionYear <= ALL (
+	SELECT year FROM Cars 
+	WHERE model = c.model
+) 
+\end{lstlisting}
+
+The query above find the oldest cards of every model.
+
+
+\subsection*{Subqueries in \t{FROM} Clause}
+
+\begin{lstlisting}[language=SQL]
+SELECT owner FROM
+Cars c, (SELECT * FROM OwnerInsurance WHERE payment < 200) cheapInsOwn
+WHERE c.owner = cheapInsOwn.owner;
+\end{lstlisting}
+The query above finds all cars with their respective insurance whose owner has a cheap insurance.
+
+\section*{Full Relation Operations}
+
+\subsection*{Removing Duplicates}
+
+To remove duplicates use a the  \t{DISTINCT} keyword as in \t{SELECT DISTINCT ...}. But note that it is very expensive as all the relations will need to be sorted in order to detect and elinimate duplicates. 
+
+
+\subsection*{Recursive Query}
+The basic structure is 
+\begin{lstlisting}[language=SQL]
+WITH RECURSIVE recRel AS(
+non_recursive-term
+UNION [ALL]
+recursive-term
+) SELECT * FROM recRel;
+\end{lstlisting}
+The database executes the \t{recursive-term} as long as the resulting set keeps changing.
+\begin{lstlisting}[language=SQL]
+WITH RECURSIVE anchestor AS (
+	SELECT * FROM people
+UNION
+	SELECT * from people as p
+	WHERE p.father = anchestor.id OR p.mother = anchestor.id
+)
+
+SELECT * from anchestor;
+\end{lstlisting}
+
+\subsection*{Aggregation Operators}
+
+SQL has five aggregation operators: \texttt{SUM, AVG, MIN, MAX, COUNT}. All except the \t{COUNT} are applied to scalar valued columns. The only excpetion being \t{COUNT(*)} which counts the tuples in the relation constructed from the \t{FROM} and \t{WHERE} clause.
+
+\begin{lstlisting}[language=SQL]
+SELECT AVG(netWorth), COUNT(*) 
+FROM MovieExec;
+\end{lstlisting}
+
+
+\subsection*{Grouping}
+The \t{GROUP BY} clause follows the \t{WHERE} clause and lists arguments that, if two tuples match on these arguments, will place them in the same group. The aggregation operators in the \t{SELECT} are applied on a per group basis. Only attributes mentioned in the \t{GROUP BY} clause may appear in the \t{SELECT} clause.
+
+\begin{lstlisting}[language=SQL]
+SELECT studioName, SUM(length)
+FROM Movies
+GROUP BY studioName;
+\end{lstlisting}
+
+\subsection*{Grouping, Aggregation and Nulls}
+\begin{itemize}
+	\item The value NULL is ignored in aggregation. \t{COUNT(*)} though counts number of tuples, but \t{COUNT(A)} counts number of attributes \t{A} and skips NULLS.
+	\item NULL is treated as an ordinary value when forming groups.
+	\item Aggregations over empty bag are NULL, except \t{COUNT(*)} being 0.
+\end{itemize}
+
+
+\subsection*{Having}
+
+Assume we would like to filter the groups we have aggregated: We can do this by adding a \t{HAVING} clause. e.g. we only want the names of sellers which have no sale below or equals 500:
+
+\begin{lstlisting}[language=SQL]
+SELECT COUNT(*), Name
+FROM SellerSale
+GROUP BY Name
+HAVING MIN(Sale) > 500;
+\end{lstlisting}
+
+
+\section*{Data Modifications}
+
+\subsection*{Insertions}
+
+Basic syntax:
+
+\texttt{
+INSERT INTO $R$($A_1,\ldots,A_n$) VALUES ($v_1,\ldots v_n$);
+}
+
+if they are already in standard order we can also write:
+
+\texttt{
+	INSERT INTO $R$ VALUES ($v_1,\ldots v_n$);
+}
+
+or insert programmatically:
+
+\begin{lstlisting}[language=SQL]
+INSERT INTO Relation1
+	SELECT ....
+\end{lstlisting}
+
+We note that values are only inserted after the query has been fully computed preventing interference.
+
+\subsection*{Deletions}
+We cannot specify the exact tuple to be deleted, instead we must specify a set of tuples (which can contain 1 tuple) to be deleted.
+\begin{lstlisting}[language=SQL]
+DELETE FROM R WHERE <cond>
+\end{lstlisting}
+
+\subsection*{Updates}
+Basic syntax:
+
+\texttt{UPDATE $R$ SET <new vals> WHERE <cond>};
+
+where the new vals are the name of the variable followed by an equals sign and the new assignment. 
+\begin{lstlisting}[language=SQL]
+UPDATE Professor
+SET name = 'Prof. ' || name
+WHERE title = 'Professor';
+\end{lstlisting}
+recall that the \t{||} operator concatenates strings.
+
+
+\section*{Transactions}
+
+
+A transaction is a set of SQL commands that get executed atomically. In PostgreSQL every statement in the shell is automatically wrapped in a transaction:
+
+\begin{lstlisting}[language=SQL]
+BEGIN;
+UPDATE accounts SET balance = balance - 100.00
+WHERE name = 'Alice';
+SAVEPOINT my_savepoint;
+UPDATE accounts SET balance = balance + 100.00
+WHERE name = 'Bob';
+-- oops ... forget that and use Wally's account
+ROLLBACK TO my_savepoint;
+UPDATE accounts SET balance = balance + 100.00
+WHERE name = 'Wally';
+COMMIT;
+
+\end{lstlisting}
+
+
+\section*{Views}
+
+A view is a virtual relation which is built on a query run on a table. 
+\begin{lstlisting}[language=SQL]
+CREATE VIEW <viewName> as <viewDefinition>;
+\end{lstlisting}
+where \t{viewDefinition} is a SQL query.
+
+we can delete a view with \t{DROP VIEW <viewName>;}
+
+\subsection*{Updating Views}
+
+We can only update views satisfying some constraints:
+\begin{itemize}
+	\item only one base relation involved
+	\item the view involves the key of the base relation
+	\item view does not involve aggregates, group by or duplicate-elimination
+\end{itemize}
+
+
+\section*{Indexes}
+
+To add an index:
+
+\t{CREATE INDEX <indexName> ON Table1(field1);}
+
+to remove an index:
+
+\t{DROP INDEX <indexName>}
+
+\subsection*{Multicolumn Indexes}
+
+\t{CREATE INDEX <indexName> on Table1(field1,field2);}
+
+Multicolumn indexes first index on field1 and then on field2.
+
+
+
+
+\part{SQL for Table Management}
+
+\section*{Table Creation}
+The basic syntax is as follows:
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Professor(
+	PersNr integer,
+	Name varchar(30),
+	Level character(2) default "AP",
+	PRIMARY KEY (PersNr)
+);
+\end{lstlisting}
+The default is a value that will be used if no \t{Level} is specified (otherwise we would have a \t{NULL}).
+
+\subsection*{Data Types}
+
+\begin{itemize}
+	\item \t{int, bit} integer, 0-1 bit
+	\item \t{numeric(precision)} a number with fixed precision
+	\item \t{boolean} 
+	\item \t{timestamp, date, time}
+	\item \t{varchar(n)} variable length string with limit
+	\item \t{char(n)} string which will be padded to size n
+	\item \t{text} unlimited string (in theory)
+\end{itemize}
+
+\section*{Relations}
+
+\subsection*{Declaring Foreign Keys}
+
+We have two options:
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Dog(
+	name VARCHAR(20),
+	owner INT REFERENCES Person(id)
+);
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Dog(
+	name VARCHAR(20),
+	owner INT,
+	FOREIGN KEY (owner) REFERENCES Person(id)
+);
+\end{lstlisting}
+
+With the second version we can also define composite foreign keys by writing
+
+\t{FOREIGN KEY (<attributes>) REFERENCES <table>(<attributes>)}
+
+\subsection*{Referential Integrity}
+
+What should happen to a record (called child record in the following discussion) if a parent record (the one referred to in one of the childs foreign key fields) gets updated or deleted?
+
+There are multiple options: (usually the key a child refers to is a parents primary key)
+
+\begin{itemize}
+	\item \t{CASCADE}
+	\begin{itemize} 
+		\item \t{UPDATE} if the parents primary key is updated the child's foreign key will also be updated.
+		\item \t{DELETE} if parent gets deleted, child will be deleted too.
+	\end{itemize}
+	\item \t{RESTRICT}
+	\begin{itemize} 
+		\item \t{UPDATE} attempt to update parent's primary key will fail with an error
+		\item \t{DELETE} attempt to update parent's primary key will fail with an error
+	\end{itemize}
+	\item \t{NO ACTION}
+	\begin{itemize} 
+		\item \t{UPDATE} attempt to update parent's primary key will fail with an error
+		\item \t{DELETE} attempt to update parent's primary key will fail with an error
+	\end{itemize}
+	\item \t{SET DEFAULT}
+	\begin{itemize} 
+		\item \t{UPDATE} when parent's primary key gets updated child's foreign key will be set to DEFAULT or NULL
+		\item \t{DELETE} when parent gets deleted child's foreign key will be set to DEFAULT or NULL
+	\end{itemize}
+\end{itemize}
+
+\textbf{Difference between \t{NO ACTION} and \t{RESTRICT}?} With \t{RESTRICT} the constraint will be checked and immediately fails whereas with \t{NO ACTION} the database tries to update/delete but then fails on committing (failure of deferred check). However some databases (e.g. MySQL) do not differentiate between the two options.
+
+Usually \t{NO ACTION} is the \textbf{default} if no specific constraint has been chosen.
+
+The constraints can be specified during table creation as follows:
+
+\begin{lstlisting}[language=SQL]
+create table Lecture (
+	...,
+	PersNr integer references Professor
+	on delete {cascade | restrict | no action |
+		set null |set default}
+	on update {cascade | restrict | no action |
+		set null |set default}
+); 
+\end{lstlisting}
+
+\subsection*{Enforcing 1:1 Relations}
+
+This is best done using a third table:
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Employee(
+	emp_id VARCHAR(20) NOT NULL UNIQUE
+);
+CREATE TABLE Office(
+	room VARCHAR(20) NOT NULL UNIQUE
+);
+
+CREATE TABLE HasOffice(
+	emp_id VARCHAR(20) NOT NULL UNIQUE REFERENCES Employee (emp_id),
+	room VARCHAR(20) NOT NULL UNIQUE REFERENCES Office (room)
+);
+\end{lstlisting}
+
+\section*{Constraints}
+
+\subsection*{\t{NOT NULL}}
+Attribute cannot be \t{NULL}
+\begin{lstlisting}[language=SQL]
+..
+sName text NOT NULL,
+...
+
+\end{lstlisting}
+\subsection*{\t{PRIMARY KEY}}
+Only one primary key constraint can be specified per relation.
+Two options, either a single attribute as primary key like
+\begin{lstlisting}[language=SQL]
+...
+sID int PRIMARY KEY,
+...
+\end{lstlisting}
+or a combination of attributes:
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Student
+(
+	sID int,
+
+	sName text,
+
+	GPA real
+
+	PRIMARY KEY (sID, sName)
+);
+\end{lstlisting}
+where the combination must be unique and all attributes need to be non null.
+\subsection*{\t{UNIQUE}}
+Usage like primary key: A value must be unique, but different from \t{PRIMARY KEY} the value can be \t{NULL} and we can have multiple \t{UNIQUE} constraints per relation.
+
+\subsection*{\t{CHECK}}
+Can happen at tuple or attribute level which will get checked at update of tuple or single attribute respectively.
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Employee
+(
+salary real,
+bonus real,
+CHECK(salary + bonus > 10000)
+);
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
+CREATE TABLE Employee
+(
+salary real CHECK(salary  > 5000)
+);
+\end{lstlisting}
+
+
+\section*{Assertions \& Triggers}
+
+\subsection*{Assertion}
+A logical expression that must be true at all times:
+\begin{lstlisting}[language=SQL]
+CREATE  ASSERTION <assertName> CHECK (<condition>)
+\end{lstlisting}
+
+\subsection*{Trigger}
+A trigger is an SQL statement that gets executed when a certain predefined action is performed. It is best to just look at an example or read the docs if a trigger is needed:
+
+\begin{lstlisting}[language=SQL]
+CREATE TRIGGER CeoCantGetPayCut
+AFTER UPDATE OF (salary) ON Ceo
+REFERENCING
+	OLD ROW AS oldRow,
+	NEW ROW AS newRow,
+FOR EACH ROW
+WHEN(oldRow.salary > newRow.salary)
+	UPDATE Ceo
+	SET salary = oldRow.salary
+	WHERE id = oldRow.id;
+\end{lstlisting}
+
+
+
+\end{document}
